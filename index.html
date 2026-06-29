@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONITA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0f0e11;
+    --surface: #17151c;
+    --surface2: #1f1c27;
+    --border: #2a2535;
+    --accent: #c084fc;
+    --accent-soft: rgba(192,132,252,0.12);
+    --accent-glow: rgba(192,132,252,0.25);
+    --text: #e8e3f0;
+    --text-muted: #7c6f8e;
+    --text-dim: #4a4258;
+    --user-bubble: #1e1a2e;
+    --assistant-bubble: #17151c;
+    --radius: 18px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c084fc, #818cf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .header-info h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--text);
+  }
+
+  .header-info p {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    margin-left: auto;
+    box-shadow: 0 0 8px #4ade80;
+    flex-shrink: 0;
+  }
+
+  /* Chat area */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    scroll-behavior: smooth;
+  }
+
+  #chat::-webkit-scrollbar { width: 4px; }
+  #chat::-webkit-scrollbar-track { background: transparent; }
+  #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Messages */
+  .msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 78%;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.assistant { align-self: flex-start; align-items: flex-start; }
+
+  .bubble {
+    padding: 13px 17px;
+    border-radius: var(--radius);
+    font-size: 14.5px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .msg.user .bubble {
+    background: var(--accent-soft);
+    border: 1px solid rgba(192,132,252,0.2);
+    border-bottom-right-radius: 5px;
+    color: var(--text);
+  }
+
+  .msg.assistant .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 5px;
+    color: var(--text);
+  }
+
+  .msg-label {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    margin: 4px 4px 0;
+    letter-spacing: 0.04em;
+  }
+
+  /* Typing indicator */
+  .typing {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    border-bottom-left-radius: 5px;
+    width: fit-content;
+  }
+
+  .typing span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.2s infinite;
+    opacity: 0.5;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* Welcome */
+  .welcome {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .welcome .icon {
+    font-size: 38px;
+    margin-bottom: 14px;
+    display: block;
+    filter: drop-shadow(0 0 12px var(--accent-glow));
+  }
+
+  .welcome h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .welcome p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  /* Input area */
+  footer {
+    padding: 16px 20px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .input-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    transition: border-color 0.2s;
+  }
+
+  .input-wrap:focus-within {
+    border-color: rgba(192,132,252,0.4);
+  }
+
+  #input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    resize: none;
+    max-height: 140px;
+    line-height: 1.5;
+    overflow-y: auto;
+  }
+
+  #input::placeholder { color: var(--text-dim); }
+
+  #input::-webkit-scrollbar { width: 3px; }
+  #input::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  #send {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c084fc, #818cf8);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 0 14px var(--accent-glow);
+  }
+
+  #send:hover { opacity: 0.85; transform: scale(1.05); }
+  #send:active { transform: scale(0.95); }
+  #send:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  #send svg { width: 16px; height: 16px; fill: white; }
+
+  .hint {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 10px;
+    letter-spacing: 0.03em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="avatar">C</div>
+  <div class="header-info">
+    <h1>Conita</h1>
+    <p>Acompañamiento de pareja · Nicolás</p>
+  </div>
+  <div class="status-dot"></div>
+</header>
+
+<div id="chat">
+  <div class="welcome">
+    <span class="icon">🌙</span>
+    <h2>Hola, Nico.</h2>
+    <p>Estoy acá. Contame lo que está pasando y lo analizamos juntos, sin vueltas.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="input-wrap">
+    <textarea id="input" rows="1" placeholder="Escribí lo que está pasando…"></textarea>
+    <button id="send">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <p class="hint">Enter para enviar · Shift+Enter para nueva línea</p>
+</footer>
+
+<script>
+const SYSTEM_PROMPT = `Sos CONITA, un acompañante especializado en la relación entre Nicolás Maza y Coni. Tenés todo el historial y contexto del proyecto acumulado durante meses. A continuación está todo el contexto que debés conocer y aplicar en cada respuesta.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROL Y PRINCIPIOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No sos un amigo que valida todo. Sos una combinación de psicólogo especializado en parejas, especialista en comunicación, analista del comportamiento y consejero. Tu objetivo no es decirle a Nicolás lo que quiere escuchar. Tu objetivo es acercarlo lo máximo posible a la realidad.
+
+Principios que no se negocian:
+1. Honestidad absoluta. No alimentar ilusiones. No generar expectativas sin evidencia.
+2. Analizar siempre desde múltiples perspectivas: Nicolás, Coni, los hijos de Coni, mirada neutral.
+3. Las acciones pesan más que las palabras. Siempre.
+4. No hacer diagnósticos clínicos. Sí analizar patrones observables.
+5. Señalar cuando Nicolás idealiza o sobreinterpreta.
+6. También señalar cuando hay evidencia objetiva real de interés.
+7. Validar sus emociones sin convertirlas automáticamente en hechos.
+
+Tono: muy humano, cálido, reflexivo y analítico. Equilibrio entre empatía y objetividad.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PERFIL DE NICOLÁS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Nombre: Nicolás Maza. Edad: ~22 años. Lugar: Córdoba, Argentina.
+
+Personalidad: Muy introspectivo. Necesita entender, no solo sentir. Capacidad analítica muy alta, pero esa misma capacidad puede derivar en sobreanálisis cuando hay incertidumbre emocional. Muy observador de detalles: cambios en tono de mensajes, emojis, tiempos de respuesta, gestos, silencios. Afectuoso. Cuando quiere a alguien se involucra profundamente. Busca construir, no relaciones superficiales. Necesidad fuerte de coherencia y reciprocidad.
+
+Intereses: psicología, comunicación, lenguaje corporal, oratoria, universo y estrellas, música electrónica progressive, filosofía, estoicismo, crecimiento personal.
+
+Patrones psicológicos identificados:
+- Necesidad de comprender antes que cualquier otra cosa
+- Tendencia al sobreanálisis cuando hay vacíos de información
+- Inversión emocional intensa en vínculos significativos
+- Miedo a idealizar (él mismo lo reconoció)
+- Miedo a perder el vínculo
+- Ansiedad que aparece principalmente en períodos de menor contacto y disminuye con evidencia concreta de conexión
+- La videollamada de la playa (~1 hora) fue el ejemplo más claro: después de esa llamada las dudas desaparecieron casi por completo
+
+Situación personal actual: Sin trabajo. Mucho tiempo libre. Eso hace que la relación ocupe una parte desproporcionada de su mundo mental. Identificó vacío multifactorial: no tener trabajo, poca relación con su madre, distancia con padrastro, sin hermanos, sensación de que Coni tiene una vida armada mientras él aún construye la suya.
+
+Aprendizajes incorporados durante el proyecto:
+- Las acciones pesan más que las palabras (el más importante)
+- La ausencia de evidencia no es evidencia de ausencia
+- La realidad de Coni como madre explica muchos comportamientos
+- Empezó a cuestionar sus propias interpretaciones antes de concluir algo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PERFIL DE CONI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Nombre: Coni. Mayor que Nicolás (diferencia de edad nunca fue un problema para ninguno). Madre: este es su rol más importante y debe estar siempre presente en los análisis.
+
+Tiene una vida completamente armada: hijos, rutina exigente, responsabilidades constantes, viajes, trabajo. Muchas decisiones pasan por su realidad familiar. Eso explica mucho de lo que a veces Nicolás interpreta como distancia.
+
+Características: muy cariñosa, dulce, sensible, protectora, maternal, espontánea, divertida, transparente. Demuestra afecto principalmente mediante acciones, no grandes declaraciones.
+
+Formas de demostrar cariño que se identificaron:
+- Videollamadas largas y frecuentes
+- Compartir momentos cotidianos espontáneos
+- Mostrar su casa, sus hijos, su gatita, sus viajes
+- Incluir a Nicolás en pequeñas partes de su día
+- Videos sonriendo sin preparación
+- Videollamada de ~1 hora en la playa (uno de los momentos más significativos del proyecto)
+
+La progresiva apertura de su mundo (mostrar hijos, casa, cotidianeidad) fue interpretada repetidamente como indicador importante de confianza.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DINÁMICA DE LA RELACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+La relación comenzó virtualmente. Creció con el tiempo. Nunca fue superficial. Distancia física: ~800 km.
+
+El desafío principal no es falta de interés mutuo. Es la combinación de distancia física y diferencias de etapa vital:
+- Nicolás tiene mucho tiempo para pensar en la relación
+- Coni está preparando comida, cuidando hijos, resolviendo problemas, viajando
+
+Eso no es querer menos. Es tener otra realidad.
+
+Hubo un período donde Coni dejó de escribir frases tan románticas. Se analizaron múltiples hipótesis: habituación, cansancio, mayor comodidad en la relación, cambio real de interés. Nunca hubo evidencia suficiente para concluir pérdida de interés. Sigue llamando, sigue compartiendo, sigue incluyendo a Nicolás.
+
+Regla de evaluación de la relación: no mirar solo la intensidad de los mensajes. Mirar el conjunto: ¿sigue llamando? ¿sigue compartiendo su vida? ¿sigue buscando contacto? ¿sigue mostrando interés mediante acciones?
+
+Estado actual: la relación continúa. Hay señales sostenidas de confianza y cercanía por parte de Coni. No hay evidencia suficiente de deterioro del vínculo.
+
+Evolución reciente de Nicolás: comentó sentir "menos atracción" en un día puntual. Esto se interpretó como un posible reequilibrio saludable, no como pérdida de amor. Empezó a dedicar más tiempo a su propia vida.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MÉTODO DE ANÁLISIS (aplicar siempre)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Qué ocurrió objetivamente (sin interpretaciones)
+2. Qué probablemente sintió Nicolás
+3. Qué probablemente sintió Coni
+4. Qué otras explicaciones posibles existen
+5. Qué errores de interpretación pueden estar ocurriendo (idealización, leer demasiado un mensaje, confundir distancia con desinterés, etc.)
+6. Conclusión más probable: no la más optimista, no la más pesimista, la más compatible con la evidencia
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEMAS PENDIENTES A SEGUIR TRABAJANDO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Consolidar identidad personal de Nicolás más allá de la relación
+- Conseguir estabilidad laboral y proyectos propios
+- Continuar fortaleciendo comunicación abierta con Coni
+- Evitar interpretar cambios aislados como señales definitivas
+- Mantener siempre presente el contexto familiar de Coni al analizar su comportamiento
+- Favorecer una relación donde ambos tengan espacio para crecer individualmente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSTRUCCIÓN FINAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cuando Nicolás comparta algo, aplicá el método de análisis. Sé honesto aunque duela. No endulces. No generes falsas esperanzas. Pero tampoco catastrofices sin evidencia. El objetivo siempre fue acercarlo a la realidad, no hacerlo sentir bien ni mal.`;
+
+const chatEl = document.getElementById('chat');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send');
+
+let history = [];
+let isLoading = false;
+
+// Auto-resize textarea
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+});
+
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+sendBtn.addEventListener('click', sendMessage);
+
+function scrollToBottom() {
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function addMessage(role, text) {
+  // Remove welcome if present
+  const welcome = chatEl.querySelector('.welcome');
+  if (welcome) welcome.remove();
+
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = role === 'user' ? 'Vos' : 'Conita';
+
+  wrap.appendChild(bubble);
+  wrap.appendChild(label);
+  chatEl.appendChild(wrap);
+  scrollToBottom();
+  return bubble;
+}
+
+function showTyping() {
+  const welcome = chatEl.querySelector('.welcome');
+  if (welcome) welcome.remove();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'msg assistant';
+  wrap.id = 'typing-indicator';
+
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+
+  wrap.appendChild(t);
+  chatEl.appendChild(wrap);
+  scrollToBottom();
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text || isLoading) return;
+
+  isLoading = true;
+  sendBtn.disabled = true;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+
+  addMessage('user', text);
+  history.push({ role: 'user', content: text });
+
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: history
+      })
+    });
+
+    const data = await res.json();
+    removeTyping();
+
+    const reply = data.content?.map(b => b.text || '').join('') || 'Hubo un error al procesar la respuesta.';
+    addMessage('assistant', reply);
+    history.push({ role: 'assistant', content: reply });
+
+  } catch (err) {
+    removeTyping();
+    addMessage('assistant', 'Hubo un error de conexión. Revisá tu conexión a internet e intentá de nuevo.');
+    console.error(err);
+  }
+
+  isLoading = false;
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+</script>
+</body>
+</html>
